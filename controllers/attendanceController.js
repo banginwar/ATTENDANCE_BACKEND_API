@@ -37,8 +37,19 @@ const getStudentAttendance = async (req, res) => {
   }
 };
 
+const dbHealth = async (req,res) => {
+  try {
+    const result = await pool.query('SELECT 1');
+    res.send('✅ DB connection is healthy');
+  } catch (err) {
+    console.error('DB connection failed:', err);
+    res.status(500).send('❌ DB connection error');
+  }
+};
+
 module.exports = {
   markAttendance,
   getAllAttendance,
   getStudentAttendance,
+  dbHealth
 };
