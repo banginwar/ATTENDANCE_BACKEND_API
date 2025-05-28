@@ -15,6 +15,20 @@ const markAttendance = async (req, res) => {
   }
 };
 
+//save company detais
+const saveCompanyDetails = async (req, res) => {
+  const {name,gstNo,address,city,state,adminName,adminEmail } = req.body;  
+  try {
+    const result = await pool.query(
+      "INSERT INTO companyees (company_name, gst_no,address,city,state,admin_name,admin_email) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *",
+      [name,gstNo,address,city,state,adminName,adminEmail]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 // Get all attendance
 const getAllAttendance = async (req, res) => {
   try {
@@ -51,5 +65,6 @@ module.exports = {
   markAttendance,
   getAllAttendance,
   getStudentAttendance,
-  dbHealth
+  dbHealth,
+  saveCompanyDetails
 };
