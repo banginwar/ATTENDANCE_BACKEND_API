@@ -20,11 +20,25 @@ const markAttendance = async (req, res) => {
 const saveCompanyDetails = async (req, res) => {
   const {name,gstNo,address,city,state,adminName,adminEmail } = req.body;  
   try {
-    const result = await pool.query(
+    const companyResult = await pool.query(
       "INSERT INTO companyees (company_name, gst_no,address,city,state,admin_name,admin_email) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *",
       [name,gstNo,address,city,state,adminName,adminEmail]
     );
-    res.status(201).json(result.rows[0]);
+    if(companyResult.rows[0].id>0){
+      console.log("Company details saved successfully with id :",companyResult.rows[0].id);
+      const password = 'attendance@' + companyResult.rows[0].id; // Generate a default password
+    const empPassword = await bcrypt.hash(password, 8)  
+    console.log("emp normal password",password)
+    console.log("emp hash password",empPassword)
+      const empResult = await pool.query(
+        "INSERT INTO employees (user_name,email,password) VALUES ($1,$2,$3) RETURNING email,password",
+        [adminName,adminEmail,empPassword]
+      );
+      res.status(200).json(empResult.rows[0]);
+    }else{
+      res.status(201).json({ message: "Company details not saved" });
+    }
+    
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -57,9 +71,19 @@ const encrypt = async (req,res) => {
   try{
     const {email,reqPassword } = req.body; 
     const password = reqPassword;
-    const hashedPassword = await bcrypt.hash(password, 8)
-  
-    console.log(password)
+    if(!email || !password){
+      return res.status(400).send('Email and password are required');
+    }
+    console.log(email)
+   // const hashedPassword = await bcrypt.hash(password, 8)
+    const empresult = await pool.query("SELECT id,password FROM employees where email = $1 order by id  DESC limit 1",[email]);
+    console.log("emp result",empresult.rows);
+    if(empresult.rows.length === 0){
+      return res.status(404).send('No employee found');
+    }else{
+      console.log("emp result",empresult.rows[0])
+      const hashedPassword=empresult.rows[0].password;
+      console.log(password)
     console.log(hashedPassword)
   
     const isMatch = await bcrypt.compare(password, hashedPassword)
@@ -69,6 +93,7 @@ const encrypt = async (req,res) => {
     }else{
       res.status(401).send('login unsuccess');
     }
+    }    
     
   }catch (err) {
     console.error('Somthing went wrong', err);
