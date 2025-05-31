@@ -1,4 +1,5 @@
 const pool = require('../models/db');
+const bcrypt = require('bcryptjs')
 
 // Create attendance
 const markAttendance = async (req, res) => {
@@ -51,6 +52,32 @@ const getStudentAttendance = async (req, res) => {
   }
 };
 
+//encript password functions
+const encrypt = async (req,res) => {
+  try{
+    const {email,reqPassword } = req.body; 
+    const password = reqPassword;
+    const hashedPassword = await bcrypt.hash(password, 8)
+  
+    console.log(password)
+    console.log(hashedPassword)
+  
+    const isMatch = await bcrypt.compare(password, hashedPassword)
+    console.log(isMatch)
+    if(isMatch){
+      res.status(200).send('login success');
+    }else{
+      res.status(401).send('login unsuccess');
+    }
+    
+  }catch (err) {
+    console.error('Somthing went wrong', err);
+    res.status(500).send('login unsuccess');
+  }
+ 
+}
+
+
 const dbHealth = async (req,res) => {
   try {
     const result = await pool.query('SELECT 1');
@@ -66,5 +93,7 @@ module.exports = {
   getAllAttendance,
   getStudentAttendance,
   dbHealth,
-  saveCompanyDetails
+  saveCompanyDetails,
+  encrypt
+
 };

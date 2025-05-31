@@ -5,7 +5,8 @@ const {
   getAllAttendance,
   getStudentAttendance,
   dbHealth,
-  saveCompanyDetails
+  saveCompanyDetails,
+  encrypt
 } = require('../controllers/attendanceController');
 
 router.post('/', markAttendance);
@@ -13,5 +14,6 @@ router.get('/', getAllAttendance);
 router.get('/attendanceapi/dbhealth',dbHealth);
 router.get('/:studentId', getStudentAttendance);
 router.post('/attendanceapi/savecompanydetails', saveCompanyDetails); 
+router.post('/attendanceapi/login', encrypt); 
 
 module.exports = router;
