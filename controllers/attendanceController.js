@@ -1,6 +1,9 @@
 const pool = require('../models/db');
 const bcrypt = require('bcryptjs')
 
+const csv = require('csv-parser');
+const fs = require('fs');
+const path = require('path');
 // Create attendance
 const markAttendance = async (req, res) => {
   const { studentId, status } = req.body;
@@ -116,12 +119,50 @@ const dbHealth = async (req,res) => {
   }
 };
 
+const uploadEmpCsv= async (req, res) => {
+  console.log(req.file);
+  const filePath = req.file.path;
+  
+  const results = [];
+  fs.createReadStream(filePath)
+    .pipe(csv())
+    .on('data', (row) => {
+      results.push(row);
+    })
+    .on('end', async () => {
+      try {
+        for (const row of results) {
+          console.log(row);
+          await pool.query(
+            'INSERT INTO employees (user_name, email) VALUES ($1, $2)',
+            [row.name, row.email]
+          );
+        }
+        //fs.unlinkSync(filePath); // Cleanup uploaded file
+        res.send('CSV processed and data inserted.');
+      } catch (err) {
+        console.error('Insert error:', err);
+        res.status(500).send('Database insert failed.');
+      }
+    })
+    .on('error', (err) => {
+      console.error('CSV parse error:', err);
+      res.status(400).send('Failed to parse CSV.');
+    });
+ 
+  // Process the CSV file here
+  // You can use a library like csv-parser or papaparse to parse the CSV data
+
+ // res.send('CSV file uploaded successfully');
+};
+
 module.exports = {
   markAttendance,
   getAllAttendance,
   getStudentAttendance,
   dbHealth,
   saveCompanyDetails,
-  encrypt
+  encrypt,
+  uploadEmpCsv
 
 };
