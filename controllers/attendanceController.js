@@ -34,7 +34,10 @@ const saveCompanyDetails = async (req, res) => {
         "INSERT INTO employees (user_name,email,password) VALUES ($1,$2,$3) RETURNING email,password",
         [adminName,adminEmail,empPassword]
       );
-      res.status(200).json(empResult.rows[0]);
+      let userResult={};
+      userResult.email=empResult.rows[0].email;
+      userResult.password=password;
+      res.status(200).json(userResult);
     }else{
       res.status(201).json({ message: "Company details not saved" });
     }
