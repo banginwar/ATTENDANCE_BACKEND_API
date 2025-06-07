@@ -4,6 +4,28 @@ const bcrypt = require('bcryptjs')
 const csv = require('csv-parser');
 const fs = require('fs');
 const path = require('path');
+const tf = require('@tensorflow/tfjs-node');
+
+//for image processing
+const saveImpImageVector=async (req, res) => {
+  let empId= req.body.empId;
+  //const filePath = req.file.path;
+  let storedVectors = [];
+  const vector = await getImageVector(req.file.path);
+
+  try {
+    const result = await pool.query(
+      "INSERT INTO employee_signature (emp_id, vectors) VALUES ($1, $2) RETURNING *",
+      [empId, vector]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+ // storedVectors.push({ name: req.file.originalname, vector });
+ 
+  res.json({ message: 'Vector saved' });
+}
 // Create attendance
 const markAttendance = async (req, res) => {
   const { studentId, status } = req.body;
@@ -138,7 +160,7 @@ const uploadEmpCsv= async (req, res) => {
             [row.name, row.email]
           );
         }
-        //fs.unlinkSync(filePath); // Cleanup uploaded file
+        fs.unlinkSync(filePath); // Cleanup uploaded file
         res.send('CSV processed and data inserted.');
       } catch (err) {
         console.error('Insert error:', err);
@@ -163,6 +185,7 @@ module.exports = {
   dbHealth,
   saveCompanyDetails,
   encrypt,
-  uploadEmpCsv
+  uploadEmpCsv,
+  saveImpImageVector
 
 };

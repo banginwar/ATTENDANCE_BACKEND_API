@@ -10,7 +10,8 @@ const {
   dbHealth,
   saveCompanyDetails,
   encrypt,
-  uploadEmpCsv
+  uploadEmpCsv,
+  saveImpImageVector
 } = require('../controllers/attendanceController');
 
 router.post('/', markAttendance);
@@ -20,5 +21,6 @@ router.get('/:studentId', getStudentAttendance);
 router.post('/attendanceapi/savecompanydetails', saveCompanyDetails); 
 router.post('/attendanceapi/login', encrypt); 
 router.post('/attendanceapi/uploadempcsv',upload.single('file'), uploadEmpCsv); 
+router.post('/attendanceapi/saveimagevector',upload.single('file'), saveImpImageVector); 
 
 module.exports = router;
