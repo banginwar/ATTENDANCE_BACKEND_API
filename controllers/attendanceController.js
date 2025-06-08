@@ -179,10 +179,7 @@ const uploadEmpCsv = async (req, res) => {
             [row.name, row.email]
           );
         }
-<<<<<<< HEAD
-=======
         fs.unlinkSync(filePath); // Cleanup uploaded file
->>>>>>> 7a78af7619a0268c6799383bcde7b6c7e0b21d79
         res.send('CSV processed and data inserted.');
       } catch (err) {
         res.status(500).send('Database insert failed.');
