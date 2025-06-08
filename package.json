@@ -10,6 +10,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@tensorflow/tfjs-node": "^4.22.0",
     "bcryptjs": "^3.0.2",
     "csv-parser": "^3.2.0",
     "dotenv": "^16.5.0",
@@ -17,7 +18,8 @@
     "express-validator": "^7.2.1",
     "multer": "^2.0.0",
     "path": "^0.12.7",
-    "pg": "^8.15.6"
+    "pg": "^8.15.6",
+    "sharp": "^0.34.2"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"

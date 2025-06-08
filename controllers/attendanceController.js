@@ -13,6 +13,47 @@ const validateRequest = (req, res) => {
 };
 
 // 1. Mark Attendance
+const path = require('path');
+const tf = require('@tensorflow/tfjs-node');
+const sharp = require('sharp');
+const getModel = require('../models/vector');
+//for image processing
+
+async function imageToTensor(imagePath) {
+  const buffer = await sharp(imagePath).resize(224, 224).toFormat('png').toBuffer();
+  const imageTensor = tf.node.decodeImage(buffer, 3).expandDims(0).toFloat().div(tf.scalar(255));
+  return imageTensor;
+}
+
+async function getImageVector(imagePath) {
+  const model = await getModel();
+  const imageTensor = await imageToTensor(imagePath);
+  const prediction = model.predict(imageTensor);
+  return prediction.squeeze().array(); // vector as plain array
+}
+
+const saveImpImageVector=async (req, res) => {
+  let empId= req.body.empId;
+  //const filePath = req.file.path;
+  let storedVectors = [];
+  const vector = await getImageVector(req.file.path);
+  const vectorStr = '[' + vector.map(x => Number(x).toFixed(6)).join(',') + ']';
+
+  console.log(vectorStr)
+
+  try {
+    const result = await pool.query(
+      "INSERT INTO employee_signature (emp_id, vectors) VALUES ($1, $2) RETURNING *",
+      [empId, vectorStr]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+ // storedVectors.push({ name: req.file.originalname, vector });
+}
+
+// Create attendance
 const markAttendance = async (req, res) => {
   if (validateRequest(req, res)) return;
 
@@ -138,6 +179,10 @@ const uploadEmpCsv = async (req, res) => {
             [row.name, row.email]
           );
         }
+<<<<<<< HEAD
+=======
+        fs.unlinkSync(filePath); // Cleanup uploaded file
+>>>>>>> 7a78af7619a0268c6799383bcde7b6c7e0b21d79
         res.send('CSV processed and data inserted.');
       } catch (err) {
         res.status(500).send('Database insert failed.');
@@ -160,6 +205,7 @@ module.exports = {
   dbHealth,
   saveCompanyDetails,
   encrypt,
-  uploadEmpCsv
+  uploadEmpCsv,
+  saveImpImageVector
 
 };

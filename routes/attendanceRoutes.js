@@ -39,6 +39,16 @@ const upload = multer({ dest: '../uploads/' });
 // router.get('/attendanceapi/dbhealth', controller.dbHealth);
 // router.post('/attendanceapi/uploadempcsv', upload.single('file'), controller.uploadEmpCsv);
 
+const {
+  markAttendance,
+  getAllAttendance,
+  getStudentAttendance,
+  dbHealth,
+  saveCompanyDetails,
+  encrypt,
+  uploadEmpCsv,
+  saveImpImageVector
+} = require('../controllers/attendanceController');
 
 router.post('/', markAttendance);
 router.get('/', getAllAttendance);
@@ -47,6 +57,7 @@ router.get('/:studentId', getStudentAttendance);
 router.post('/attendanceapi/savecompanydetails', validator.validateCompanyDetails, saveCompanyDetails); 
 router.post('/attendanceapi/login', encrypt); 
 router.post('/attendanceapi/uploadempcsv',upload.single('file'), uploadEmpCsv); 
+router.post('/attendanceapi/saveimagevector',upload.single('file'), saveImpImageVector); 
 
 module.exports = router;
 
