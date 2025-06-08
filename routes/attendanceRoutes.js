@@ -47,7 +47,8 @@ const {
   saveCompanyDetails,
   encrypt,
   uploadEmpCsv,
-  saveImpImageVector
+  saveImpImageVector,
+  matchImageVector
 } = require('../controllers/attendanceController');
 
 router.post('/', markAttendance);
@@ -58,6 +59,7 @@ router.post('/attendanceapi/savecompanydetails', validator.validateCompanyDetail
 router.post('/attendanceapi/login', encrypt); 
 router.post('/attendanceapi/uploadempcsv',upload.single('file'), uploadEmpCsv); 
 router.post('/attendanceapi/saveimagevector',upload.single('file'), saveImpImageVector); 
+router.post('/attendanceapi/matchimagevector', upload.single('file'), matchImageVector); 
 
 module.exports = router;
 

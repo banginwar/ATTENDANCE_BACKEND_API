@@ -3,6 +3,11 @@ const bcrypt = require('bcryptjs');
 const csv = require('csv-parser');
 const fs = require('fs');
 const { validationResult } = require('express-validator');
+const path = require('path');
+const tf = require('@tensorflow/tfjs-node');
+const sharp = require('sharp');
+const getModel = require('../models/vector');
+const { cosineSimilarity } = require('../utils/vector');
 
 // Helper: Validate inputs
 const validateRequest = (req, res) => {
@@ -11,13 +16,6 @@ const validateRequest = (req, res) => {
     return res.status(400).json({ errors: errors.array() });
   }
 };
-
-// 1. Mark Attendance
-const path = require('path');
-const tf = require('@tensorflow/tfjs-node');
-const sharp = require('sharp');
-const getModel = require('../models/vector');
-//for image processing
 
 async function imageToTensor(imagePath) {
   const buffer = await sharp(imagePath).resize(224, 224).toFormat('png').toBuffer();
@@ -53,7 +51,7 @@ const saveImpImageVector=async (req, res) => {
  // storedVectors.push({ name: req.file.originalname, vector });
 }
 
-// Create attendance
+// 1. Create attendance
 const markAttendance = async (req, res) => {
   if (validateRequest(req, res)) return;
 
@@ -195,6 +193,38 @@ const uploadEmpCsv = async (req, res) => {
  // res.send('CSV file uploaded successfully');
 };
 
+// 8.Main function to match image vector
+const matchImageVector = async (req, res) => {
+  const empId = req.body.empId;
+  const threshold = 0.9; // Set your similarity threshold
+  const imageVector = await getImageVector(req.file.path);
+
+  try {
+    const result = await pool.query(
+      "SELECT vectors FROM employee_signature WHERE emp_id = $1",
+      [empId]
+    );
+
+    const matches = result.rows.map(row => {
+      const storedVector = JSON.parse(row.vectors);
+      const similarity = cosineSimilarity(storedVector, imageVector);
+      return similarity;
+    });
+
+    const maxSimilarity = Math.max(...matches);
+
+    if (maxSimilarity >= threshold) {
+      res.status(200).json({ success: true, similarity: maxSimilarity });
+    } else {
+      res.status(401).json({ success: false, similarity: maxSimilarity });
+    }
+
+  } catch (err) {
+    console.error("DB Error:", err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
 module.exports = {
   markAttendance,
   getAllAttendance,
@@ -203,6 +233,6 @@ module.exports = {
   saveCompanyDetails,
   encrypt,
   uploadEmpCsv,
-  saveImpImageVector
-
+  saveImpImageVector,
+  matchImageVector
 };
