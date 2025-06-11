@@ -7,8 +7,17 @@ const path = require('path');
 const tf = require('@tensorflow/tfjs-node');
 const sharp = require('sharp');
 const getModel = require('../models/vector');
-const { cosineSimilarity } = require('../utils/vector');
+// const { cosineSimilarity } = require('../utils/vector');
 
+const cosineSimilarity = (vecA, vecB) => {
+  const a = tf.tensor1d(vecA);
+  const b = tf.tensor1d(vecB);
+  const dotProduct = tf.sum(tf.mul(a, b));
+  const normA = tf.norm(a);
+  const normB = tf.norm(b);
+  const similarity = dotProduct.div(normA.mul(normB));
+  return similarity.arraySync();
+}
 // Helper: Validate inputs
 const validateRequest = (req, res) => {
   const errors = validationResult(req);
@@ -32,6 +41,7 @@ async function getImageVector(imagePath) {
 
 const saveImpImageVector=async (req, res) => {
   let empId= req.body.empId;
+  console.log("empId ==>",empId)
   //const filePath = req.file.path;
   let storedVectors = [];
   const vector = await getImageVector(req.file.path);
