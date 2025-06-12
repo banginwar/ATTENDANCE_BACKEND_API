@@ -33,21 +33,38 @@ async function imageToTensor(imagePath) {
 }
 
 async function getImageVector(imagePath) {
-  const model = await getModel();
-  const imageTensor = await imageToTensor(imagePath);
-  const prediction = model.predict(imageTensor);
-  return prediction.squeeze().array(); // vector as plain array
+  try {
+    console.log("============================")
+    const model = await getModel();
+    console.log("imagePath ==>", imagePath);
+    console.log("model ==>", model);
+
+    const imageTensor = await imageToTensor(imagePath);
+    console.log("imageTensor ==>", imageTensor);
+
+    const prediction = model.predict(imageTensor);
+    console.log("prediction ==>", prediction);
+    return prediction.squeeze().array(); // vector as plain array
+  } catch (error) {
+    console.error("Error in getImageVector:", error);
+    throw error;
+  }
 }
 
 const saveImpImageVector=async (req, res) => {
   let empId= req.body.empId;
   console.log("empId ==>",empId)
+  if (!req.file || !req.file.path) {
+    return res.status(400).json({ error: "No image uploaded" });
+  }
+  console.log("req.file.path ==>",req.file.path)
+
   //const filePath = req.file.path;
   let storedVectors = [];
   const vector = await getImageVector(req.file.path);
   const vectorStr = '[' + vector.map(x => Number(x).toFixed(6)).join(',') + ']';
 
-  console.log(vectorStr)
+  console.log("vectorStr:",vectorStr)
 
   try {
     const result = await pool.query(
